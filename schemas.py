@@ -1,15 +1,26 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, field_validator
 
 # USER
 class UserCreate(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     phone: str
     password: str
 
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if len(v) > 128:
+            raise ValueError("Password must not exceed 128 characters")
+        # Optional: check byte length to warn if >72 bytes (bcrypt limit),
+        # but we handle this securely via pre-hashing in auth.py
+        return v
+
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class UserResponse(BaseModel):
